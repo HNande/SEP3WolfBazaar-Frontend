@@ -7,4 +7,10 @@
         <BlazorDisableThrowNavigationException>true</BlazorDisableThrowNavigationException>
     </PropertyGroup>
 
+    <ItemGroup>
+      <None Update="Components\Pages\Сatalogue.razor.css">
+        <DependentUpon>Сatalogue.razor</DependentUpon>
+      </None>
+    </ItemGroup>
+
 </Project>

@@ -45,32 +45,24 @@
     ]
   },
   "packageFolders": {
-    "C:\\Users\\Nande\\.nuget\\packages\\": {},
-    "C:\\Program Files (x86)\\Microsoft Visual Studio\\Shared\\NuGetPackages": {}
+    "C:\\Users\\78max\\.nuget\\packages\\": {}
   },
   "project": {
     "version": "1.0.0",
     "restore": {
-      "projectUniqueName": "D:\\VIA\\3_sem\\DNP\\SEP3WolfBazaar-Frontend\\BlazorApp\\BlazorApp.csproj",
+      "projectUniqueName": "D:\\Univer\\3rd Semester\\Sep3\\FrontEnd\\BlazorApp\\BlazorApp.csproj",
       "projectName": "BlazorApp",
-      "projectPath": "D:\\VIA\\3_sem\\DNP\\SEP3WolfBazaar-Frontend\\BlazorApp\\BlazorApp.csproj",
-      "packagesPath": "C:\\Users\\Nande\\.nuget\\packages\\",
-      "outputPath": "D:\\VIA\\3_sem\\DNP\\SEP3WolfBazaar-Frontend\\BlazorApp\\obj\\",
+      "projectPath": "D:\\Univer\\3rd Semester\\Sep3\\FrontEnd\\BlazorApp\\BlazorApp.csproj",
+      "packagesPath": "C:\\Users\\78max\\.nuget\\packages\\",
+      "outputPath": "D:\\Univer\\3rd Semester\\Sep3\\FrontEnd\\BlazorApp\\obj\\",
       "projectStyle": "PackageReference",
-      "fallbackFolders": [
-        "C:\\Program Files (x86)\\Microsoft Visual Studio\\Shared\\NuGetPackages"
-      ],
       "configFilePaths": [
-        "C:\\Users\\Nande\\AppData\\Roaming\\NuGet\\NuGet.Config",
-        "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.FallbackLocation.config",
-        "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.Offline.config"
+        "C:\\Users\\78max\\AppData\\Roaming\\NuGet\\NuGet.Config"
       ],
       "originalTargetFrameworks": [
         "net10.0"
       ],
       "sources": {
-        "C:\\Program Files (x86)\\Microsoft SDKs\\NuGetPackages\\": {},
-        "C:\\Program Files\\dotnet\\library-packs": {},
         "https://api.nuget.org/v3/index.json": {}
       },
       "frameworks": {
