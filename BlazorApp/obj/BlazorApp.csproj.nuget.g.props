@@ -13,6 +13,7 @@
     <SourceRoot Include="C:\Users\78max\.nuget\packages\" />
   </ItemGroup>
   <ImportGroup Condition=" '$(ExcludeRestorePackageImports)' != 'true' ">
+    <Import Project="$(NuGetPackageRoot)sixlabors.imagesharp\4.1.3\build\SixLabors.ImageSharp.props" Condition="Exists('$(NuGetPackageRoot)sixlabors.imagesharp\4.1.3\build\SixLabors.ImageSharp.props')" />
     <Import Project="$(NuGetPackageRoot)microsoft.aspnetcore.app.internal.assets\10.0.11\build\Microsoft.AspNetCore.App.Internal.Assets.props" Condition="Exists('$(NuGetPackageRoot)microsoft.aspnetcore.app.internal.assets\10.0.11\build\Microsoft.AspNetCore.App.Internal.Assets.props')" />
   </ImportGroup>
 </Project>

@@ -13,4 +13,8 @@
       </None>
     </ItemGroup>
 
+    <ItemGroup>
+      <PackageReference Include="SixLabors.ImageSharp" Version="4.1.3" />
+    </ItemGroup>
+
 </Project>
