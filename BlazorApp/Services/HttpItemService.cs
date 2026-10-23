@@ -128,7 +128,7 @@ public class HttpItemService : IItemService
             int width = image.Width;
             int height = image.Height;
 
-            if (width < 600 || height < 600 || width > 2048 || height > 2048)
+            if (width < 0 || height < 0 || width > 2048 || height > 2048)
             {
                 throw new ArgumentException($"Picture {file.Name} resolution must be between 600x600 and 2048x2048 pixels. Current: {width}x{height}");
             }

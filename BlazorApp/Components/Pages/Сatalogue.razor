@@ -1,13 +1,17 @@
 @page "/"
+@inject IItemService ItemService
+@inject NavigationManager Navigation
 
 <div class="page-container">
     <div class="header-row">
-        <h1 class="page-title">Сatalogue</h1>
-        <button id="create_ite" class="action-button">Create Item Listing</button>
+        <h1 class="page-title">Catalogue</h1>
+        <NavLink href="create_item" class="action-button btn btn-primary">
+            Create Item Listing
+        </NavLink>
     </div>
 
-    <div class="main-card">
-        <div class="search-box">
+    <div class="main-card mb-4">
+        <div class="search-box mb-2">
             <span>A search bar could go here</span>
         </div>
 
@@ -17,12 +21,50 @@
     </div>
 
     <div class="table-container">
-        
+        @if (isLoading)
+        {
+            <p>Loading items...</p>
+        }
+        else if (items == null || !items.Any())
+        {
+            <p>No items found.</p>
+        }
+        else
+        {
+            <div class="row">
+                @foreach (var item in items)
+                {
+                    <div class="col-md-4 mb-3">
+                        <div class="card p-3 shadow-sm">
+                            <h3>@item.Name</h3>
+                            <p>@item.Description</p>
+                            <p><strong>Price:</strong> $@item.Price</p>
+                            <p><strong>Keyword:</strong> <span class="badge bg-secondary">@item.Keyword</span></p>
+                        </div>
+                    </div>
+                }
+            </div>
+        }
     </div>
 </div>
 
-@code{
+@code {
+    private IEnumerable<ItemDto> items = Enumerable.Empty<ItemDto>();
+    private bool isLoading = true;
 
-    
-
+    protected override async Task OnInitializedAsync()
+    {
+        try
+        {
+            items = await ItemService.GetItemsAsync();
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error loading items: {ex.Message}");
+        }
+        finally
+        {
+            isLoading = false;
+        }
+    }
 }
