@@ -38,7 +38,10 @@
                         <div class="card p-3 shadow-sm">
                             <h3>@item.Name</h3>
                             <p>@item.Description</p>
-                            <p><strong>Price:</strong> $@item.Price</p>
+                            <p>
+                                <strong>Price:</strong> 
+                                @(item.Price.HasValue && item.Price.Value > 0 ? $"${item.Price.Value}" : "Free")
+                            </p>
                             <p><strong>Keyword:</strong> <span class="badge bg-secondary">@item.Keyword</span></p>
                         </div>
                     </div>
