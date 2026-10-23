@@ -14,9 +14,7 @@ public class ItemDto
     [StringLength(500, MinimumLength = 20, ErrorMessage = "Description must be between 20 and 500 characters.")]
     public string Description { get; set; }
 
-    [Required(ErrorMessage = "Price is required.")]
-    [Range(0, int.MaxValue, ErrorMessage = "Price must be a positive number.")]
-    public int Price { get; set; }
+    public int? Price { get; set; }
 
     public List<string> Photos { get; set; } = new();
 

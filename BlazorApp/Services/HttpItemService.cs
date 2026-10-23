@@ -83,7 +83,8 @@ public class HttpItemService : IItemService
     {
         content.Add(new StringContent(itemDto.Name ?? string.Empty), "name");
         content.Add(new StringContent(itemDto.Description ?? string.Empty), "description");
-        content.Add(new StringContent(itemDto.Price.ToString()), "price");
+        string priceStr = itemDto.Price.HasValue ? itemDto.Price.Value.ToString() : "0";
+        content.Add(new StringContent(priceStr), "price");
         content.Add(new StringContent(itemDto.Keyword ?? string.Empty), "keyword");
     }
 
