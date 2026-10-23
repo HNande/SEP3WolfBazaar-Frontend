@@ -134,4 +134,10 @@ public class HttpItemService : IItemService
             }
         }
     }
+    
+    public async Task<IEnumerable<string>> GetKeywordsAsync()
+    {
+        return await HttpClient.GetFromJsonAsync<IEnumerable<string>>("api/keywords") 
+               ?? Enumerable.Empty<string>();
+    }
 }

@@ -34,12 +34,18 @@
 
     <div class="mb-3">
         <label>Keyword:</label>
-        <InputText class="form-control" @bind-Value="itemDto.Keyword" />
+        <InputSelect class="form-control" @bind-Value="itemDto.Keyword">
+            <option value="">-- Select a keyword from server --</option>
+            @foreach (var keyword in availableKeywords)
+            {
+                <option value="@keyword">@keyword</option>
+            }
+        </InputSelect>
         <ValidationMessage For="@(() => itemDto.Keyword)" />
     </div>
 
     <div class="mb-3">
-        <label>Pictures (Max 4, PNG/JPEG, up to 2048x2048):</label>
+        <label>Pictures (Max 4, PNG/JPEG, 600x600 to 2048x2048):</label>
         <InputFile OnChange="LoadFiles" class="form-control" multiple accept=".png, .jpeg, .jpg" />
         <small class="text-muted">Selected files: @selectedFiles.Count / 4</small>
     </div>
@@ -59,8 +65,21 @@
 @code {
     private ItemDto itemDto = new();
     private List<IBrowserFile> selectedFiles = new();
+    private List<string> availableKeywords = new();
     private string? errorMessage;
     private bool isSubmitting;
+
+    protected override async Task OnInitializedAsync()
+    {
+        try
+        {
+            availableKeywords = (await ItemService.GetKeywordsAsync()).ToList();
+        }
+        catch (Exception ex)
+        {
+            errorMessage = $"Could not load keywords from server: {ex.Message}";
+        }
+    }
 
     private void LoadFiles(InputFileChangeEventArgs e)
     {
@@ -75,7 +94,6 @@
         try
         {
             await ItemService.CreateItemAsync(itemDto, selectedFiles);
-            
             Navigation.NavigateTo("/");
         }
         catch (Exception ex)

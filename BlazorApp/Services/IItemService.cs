@@ -10,4 +10,5 @@ public interface IItemService
     Task DeleteItemAsync(int id);
     Task<IEnumerable<ItemDto>> GetItemsAsync();
     Task<ItemDto> GetItemByIdAsync(int id);
+    Task<IEnumerable<string>> GetKeywordsAsync();
 }
