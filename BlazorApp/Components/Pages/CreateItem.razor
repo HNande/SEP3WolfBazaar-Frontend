@@ -34,18 +34,18 @@
 
     <div class="mb-3">
         <label>Keyword:</label>
-        <InputSelect class="form-control" @bind-Value="itemDto.Keyword">
+        <!--<InputSelect class="form-control" @bind-Value="itemDto.Keyword">
             <option value="">-- Select a keyword from server --</option>
             @foreach (var keyword in availableKeywords)
             {
                 <option value="@keyword">@keyword</option>
             }
         </InputSelect>
-        <ValidationMessage For="@(() => itemDto.Keyword)" />
+        <ValidationMessage For="@(() => itemDto.Keyword)" />-->
     </div>
 
     <div class="mb-3">
-        <label>Pictures (Max 4, PNG/JPEG, 600x600 to 2048x2048):</label>
+        <label>Pictures (Max 4, PNG/JPEG, up to 2048x2048):</label>
         <InputFile OnChange="LoadFiles" class="form-control" multiple accept=".png, .jpeg, .jpg" />
         <small class="text-muted">Selected files: @selectedFiles.Count / 4</small>
     </div>
@@ -73,7 +73,7 @@
     {
         try
         {
-            availableKeywords = (await ItemService.GetKeywordsAsync()).ToList();
+            //availableKeywords = (await ItemService.GetKeywordsAsync()).ToList();
         }
         catch (Exception ex)
         {

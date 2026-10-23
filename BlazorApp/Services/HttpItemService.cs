@@ -31,7 +31,7 @@ public class HttpItemService : IItemService
             throw new Exception($"Failed to create item: {error}");
         }
 
-        return await response.Content.ReadFromJsonAsync<ItemDto>() ??
+        return itemDto ??
                throw new InvalidOperationException("Failed to deserialize created item response.");
     }
 
@@ -85,7 +85,7 @@ public class HttpItemService : IItemService
         content.Add(new StringContent(itemDto.Description ?? string.Empty), "description");
         string priceStr = itemDto.Price.HasValue ? itemDto.Price.Value.ToString() : "0";
         content.Add(new StringContent(priceStr), "price");
-        content.Add(new StringContent(itemDto.Keyword ?? string.Empty), "keyword");
+        //content.Add(new StringContent(itemDto.Keyword ?? string.Empty), "keyword");
     }
 
     private void AddFilesToContent(MultipartFormDataContent content, List<IBrowserFile> files)
@@ -136,9 +136,9 @@ public class HttpItemService : IItemService
         }
     }
     
-    public async Task<IEnumerable<string>> GetKeywordsAsync()
+    /*public async Task<IEnumerable<string>> GetKeywordsAsync()
     {
         return await HttpClient.GetFromJsonAsync<IEnumerable<string>>("api/keywords") 
                ?? Enumerable.Empty<string>();
-    }
+    }*/
 }

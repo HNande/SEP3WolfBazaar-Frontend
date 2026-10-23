@@ -18,6 +18,6 @@ public class ItemDto
 
     public List<string> Photos { get; set; } = new();
 
-    [Required(ErrorMessage = "Keyword is required.")]
-    public string Keyword { get; set; }
+    //[Required(ErrorMessage = "Keyword is required.")]
+    //public string Keyword { get; set; }
 }
