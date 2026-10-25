@@ -16,7 +16,7 @@ public class ItemDto
 
     public int? Price { get; set; }
 
-    public List<string> Photos { get; set; } = new();
+    public AlbumDto Album { get; set; }
 
     //[Required(ErrorMessage = "Keyword is required.")]
     //public string Keyword { get; set; }

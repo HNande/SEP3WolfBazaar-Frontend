@@ -1,4 +1,5 @@
-﻿using BlazorApp.DTO;
+﻿using System.Net.Http.Json;
+using BlazorApp.DTO;
 using Microsoft.AspNetCore.Components.Forms;
 using SixLabors.ImageSharp;
 
@@ -15,15 +16,9 @@ public class HttpItemService : IItemService
 
     public async Task<ItemDto> CreateItemAsync(ItemDto itemDto, IEnumerable<IBrowserFile> files)
     {
-        var fileList = files?.ToList() ?? new List<IBrowserFile>();
-        
-        await ValidateFilesAsync(fileList);
+        itemDto.Album = await BuildAlbumAsync(itemDto.Name, files);
 
-        using var content = new MultipartFormDataContent();
-        AddDtoFields(content, itemDto);
-        AddFilesToContent(content, fileList);
-
-        HttpResponseMessage response = await HttpClient.PostAsync("api/item", content);
+        HttpResponseMessage response = await HttpClient.PostAsJsonAsync("api/item", itemDto);
         
         if (!response.IsSuccessStatusCode)
         {
@@ -31,21 +26,14 @@ public class HttpItemService : IItemService
             throw new Exception($"Failed to create item: {error}");
         }
 
-        return itemDto ??
-               throw new InvalidOperationException("Failed to deserialize created item response.");
+        return await response.Content.ReadFromJsonAsync<ItemDto>() ?? itemDto;
     }
 
     public async Task<ItemDto> UpdateItemAsync(int id, ItemDto itemDto, IEnumerable<IBrowserFile> files)
     {
-        var fileList = files?.ToList() ?? new List<IBrowserFile>();
-        
-        await ValidateFilesAsync(fileList);
+        itemDto.Album = await BuildAlbumAsync(itemDto.Name, files);
 
-        using var content = new MultipartFormDataContent();
-        AddDtoFields(content, itemDto);
-        AddFilesToContent(content, fileList);
-
-        HttpResponseMessage response = await HttpClient.PutAsync($"api/item/{id}", content);
+        HttpResponseMessage response = await HttpClient.PutAsJsonAsync($"api/item/{id}", itemDto);
         
         if (!response.IsSuccessStatusCode)
         {
@@ -79,43 +67,22 @@ public class HttpItemService : IItemService
                ?? throw new KeyNotFoundException($"Item with ID {id} was not found.");
     }
 
-    private void AddDtoFields(MultipartFormDataContent content, ItemDto itemDto)
+    private async Task<AlbumDto> BuildAlbumAsync(string itemName, IEnumerable<IBrowserFile> files)
     {
-        content.Add(new StringContent(itemDto.Name ?? string.Empty), "name");
-        content.Add(new StringContent(itemDto.Description ?? string.Empty), "description");
-        string priceStr = itemDto.Price.HasValue ? itemDto.Price.Value.ToString() : "0";
-        content.Add(new StringContent(priceStr), "price");
-        //content.Add(new StringContent(itemDto.Keyword ?? string.Empty), "keyword");
-    }
+        var fileList = files?.ToList() ?? new List<IBrowserFile>();
 
-    private void AddFilesToContent(MultipartFormDataContent content, List<IBrowserFile> files)
-    {
-        int count = 0;
-        foreach (var file in files)
-        {
-            if (count >= 4) break;
-
-            var stream = file.OpenReadStream(maxAllowedSize: 10 * 1024 * 1024);
-            var fileContent = new StreamContent(stream);
-            
-            if (!string.IsNullOrEmpty(file.ContentType))
-            {
-                fileContent.Headers.ContentType = new System.Net.Http.Headers.MediaTypeHeaderValue(file.ContentType);
-            }
-
-            content.Add(fileContent, "photos", file.Name);
-            count++;
-        }
-    }
-
-    private async Task ValidateFilesAsync(List<IBrowserFile> files)
-    {
-        if (files.Count > 4)
+        if (fileList.Count > 4)
         {
             throw new ArgumentException("You can upload a maximum of 4 pictures.");
         }
 
-        foreach (var file in files)
+        var album = new AlbumDto
+        {
+            Title = $"{itemName}album",
+            Photos = new List<PhotoDto>()
+        };
+
+        foreach (var file in fileList)
         {
             var ext = Path.GetExtension(file.Name).ToLowerInvariant();
             if (ext != ".png" && ext != ".jpg" && ext != ".jpeg")
@@ -124,21 +91,30 @@ public class HttpItemService : IItemService
             }
 
             using var stream = file.OpenReadStream(maxAllowedSize: 10 * 1024 * 1024);
-            using var image = await Image.LoadAsync(stream);
+            using var memoryStream = new MemoryStream();
+            await stream.CopyToAsync(memoryStream);
+            var fileBytes = memoryStream.ToArray();
+
+            memoryStream.Position = 0;
+            using var image = await Image.LoadAsync(memoryStream);
 
             int width = image.Width;
             int height = image.Height;
 
             if (width < 0 || height < 0 || width > 2048 || height > 2048)
             {
-                throw new ArgumentException($"Picture {file.Name} resolution must be between 600x600 and 2048x2048 pixels. Current: {width}x{height}");
+                throw new ArgumentException($"Picture {file.Name} resolution must be up to 2048x2048 pixels. Current: {width}x{height}");
             }
+
+            album.Photos.Add(new PhotoDto
+            {
+                Width = width,
+                Height = height,
+                Filetype = file.ContentType ?? "image/jpeg",
+                Data = fileBytes
+            });
         }
+
+        return album;
     }
-    
-    /*public async Task<IEnumerable<string>> GetKeywordsAsync()
-    {
-        return await HttpClient.GetFromJsonAsync<IEnumerable<string>>("api/keywords") 
-               ?? Enumerable.Empty<string>();
-    }*/
 }
