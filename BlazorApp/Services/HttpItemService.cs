@@ -55,10 +55,28 @@ public class HttpItemService : IItemService
         }
     }
 
+    // public async Task<IEnumerable<ItemDto>> GetItemsAsync()
+    // {
+    //     return await HttpClient.GetFromJsonAsync<IEnumerable<ItemDto>>("api/item") 
+    //            ?? Enumerable.Empty<ItemDto>();
+    // }
+    
+    // TEMPORARY PLUG WHILE THE BACKEND IS DOWN
     public async Task<IEnumerable<ItemDto>> GetItemsAsync()
     {
-        return await HttpClient.GetFromJsonAsync<IEnumerable<ItemDto>>("api/item") 
-               ?? Enumerable.Empty<ItemDto>();
+        try 
+        {
+            return await HttpClient.GetFromJsonAsync<IEnumerable<ItemDto>>("api/item") 
+                   ?? Enumerable.Empty<ItemDto>();
+        }
+        catch (Exception)
+        {
+            return new List<ItemDto>
+            {
+                new ItemDto { Id = 1, Name = "Test Item 1 (Mock)", Description = "Backend is sleeping...", Price = 10 },
+                new ItemDto { Id = 2, Name = "Test Item 2 (Mock)", Description = "Still waiting for database...", Price = 25 },
+            };
+        }
     }
 
     public async Task<ItemDto> GetItemByIdAsync(int id)

@@ -6,8 +6,10 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddRazorComponents()
     .AddInteractiveServerComponents();
 
-builder.Services.AddScoped<IItemService, HttpItemService>(sp => 
-    new HttpItemService(new HttpClient { BaseAddress = new Uri("http://localhost:8080/") }));
+builder.Services.AddHttpClient<IItemService, HttpItemService>(client =>
+{
+    client.BaseAddress = new Uri("http://localhost:8080/");
+});
 
 var app = builder.Build();
 
