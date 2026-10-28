@@ -11,6 +11,7 @@
       <None Update="Components\Pages\Сatalogue.razor.css">
         <DependentUpon>Сatalogue.razor</DependentUpon>
       </None>
+      <None Include="wwwroot\images\advertisement.png" />
     </ItemGroup>
 
     <ItemGroup>
