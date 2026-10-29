@@ -69,11 +69,15 @@
     private string? errorMessage;
     private bool isSubmitting;
 
+    private const int MaxAllowedFiles = 4;
+    private const long MaxFileSize = 1024 * 1024 * 10;
+    private const int MaxWidth = 2048;
+    private const int MaxHeight = 2048;
+
     protected override async Task OnInitializedAsync()
     {
         try
         {
-            //availableKeywords = (await ItemService.GetKeywordsAsync()).ToList();
         }
         catch (Exception ex)
         {
@@ -81,13 +85,62 @@
         }
     }
 
-    private void LoadFiles(InputFileChangeEventArgs e)
+    private async Task LoadFiles(InputFileChangeEventArgs e)
     {
-        selectedFiles = e.GetMultipleFiles(4).ToList();
+        errorMessage = null;
+        selectedFiles.Clear();
+
+        IReadOnlyList<IBrowserFile> files;
+
+        try
+        {
+            files = e.GetMultipleFiles(MaxAllowedFiles);
+        }
+        catch (InvalidOperationException)
+        {
+            errorMessage = $"You can only upload a maximum of {MaxAllowedFiles} files.";
+            return;
+        }
+
+        foreach (var file in files)
+        {
+            if (!file.ContentType.Equals("image/jpeg", StringComparison.OrdinalIgnoreCase) &&
+                !file.ContentType.Equals("image/png", StringComparison.OrdinalIgnoreCase))
+            {
+                errorMessage = $"File '{file.Name}' has an invalid format. Only JPG/PNG allowed.";
+                selectedFiles.Clear();
+                return;
+            }
+
+            if (file.Size > MaxFileSize)
+            {
+                errorMessage = $"File '{file.Name}' is too large. Max size allowed is {MaxFileSize / (1024 * 1024)} MB.";
+                selectedFiles.Clear();
+                return;
+            }
+
+            try
+            {
+                var resizedFile = await file.RequestImageFileAsync(file.ContentType, MaxWidth, MaxHeight);
+                selectedFiles.Add(resizedFile);
+            }
+            catch (Exception ex)
+            {
+                errorMessage = $"Error processing image {file.Name}: {ex.Message}";
+                selectedFiles.Clear();
+                return;
+            }
+        }
     }
 
     private async Task HandleValidSubmit()
     {
+        if (selectedFiles.Count == 0)
+        {
+            errorMessage = "Please upload at least one picture.";
+            return;
+        }
+
         errorMessage = null;
         isSubmitting = true;
 

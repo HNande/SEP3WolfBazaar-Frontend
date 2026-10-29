@@ -28,6 +28,13 @@
                 </div>
             </div>
         }
+        else if (!string.IsNullOrEmpty(loadErrorMessage))
+        {
+            <div class="alert alert-danger" role="alert">
+                <strong>Error:</strong> @loadErrorMessage
+                <button class="btn btn-sm btn-outline-danger ms-3" @onclick="ReloadItems">Try Again</button>
+            </div>
+        }
         else if (allItems == null || !allItems.Any())
         {
             <p class="text-muted">No items found.</p>
@@ -57,14 +64,14 @@
                             <p class="item-description">@item.Description</p>
                             <p class="mb-0 item-price">
                                 <strong>Price:</strong> 
-                                @(item.Price.HasValue && item.Price.Value > 0 ? $"${item.Price.Value}" : "Free")
+                                @(item.Price.HasValue && item.Price.Value > 0 ? $"${item.Price.Value:N2}" : "Free")
                             </p>
                         </div>
                     </div>
                 }
             </div>
 
-            @if (displayedItems.Count() < allItems.Count)
+            @if (allItems.Count > displayedItems.Count)
             {
                 <div class="text-center mt-4 w-100">
                     <button class="btn load-more-btn" @onclick="LoadMore">Load More (10)</button>
@@ -76,31 +83,52 @@
 
 @code {
     private List<ItemSummaryDto> allItems = new();
+    private List<ItemSummaryDto> displayedItems = new();
     
-    private IEnumerable<ItemSummaryDto> displayedItems => allItems.Take(pageSize);
     private int pageSize = 10;
-    
     private bool isLoading = true;
+    private string? loadErrorMessage;
 
     protected override async Task OnInitializedAsync()
+    {
+        await LoadDataAsync();
+    }
+
+    private async Task LoadDataAsync()
     {
         try
         {
             isLoading = true;
+            loadErrorMessage = null;
             
             var result = await ItemService.GetItemsAsync();
             
-            allItems = result.Select(i => new ItemSummaryDto 
+            allItems = result.Select(i => 
             {
-                Id = i.Id,
-                Name = i.Name,
-                Description = i.Description,
-                Price = (decimal?)i.Price,
-                ImageUrl = null
+                string? parsedImageUrl = null;
+                var firstPhoto = i.Album?.Photos?.FirstOrDefault();
+                
+                if (firstPhoto?.Data != null && firstPhoto.Data.Length > 0)
+                {
+                    var base64 = Convert.ToBase64String(firstPhoto.Data);
+                    parsedImageUrl = $"data:{firstPhoto.Filetype};base64,{base64}";
+                }
+
+                return new ItemSummaryDto 
+                {
+                    Id = i.Id,
+                    Name = i.Name ?? "Unnamed Item",
+                    Description = i.Description ?? string.Empty,
+                    Price = (decimal?)i.Price,
+                    ImageUrl = parsedImageUrl
+                };
             }).ToList();
+
+            UpdateDisplayedItems();
         }
         catch (Exception ex)
         {
+            loadErrorMessage = "Failed to load catalogue from server. Please check your connection.";
             Console.WriteLine($"Error loading items: {ex.Message}");
         }
         finally
@@ -109,8 +137,19 @@
         }
     }
 
+    private void UpdateDisplayedItems()
+    {
+        displayedItems = allItems.Take(pageSize).ToList();
+    }
+
     private void LoadMore()
     {
         pageSize += 10;
+        UpdateDisplayedItems();
+    }
+
+    private async Task ReloadItems()
+    {
+        await LoadDataAsync();
     }
 }

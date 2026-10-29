@@ -55,28 +55,10 @@ public class HttpItemService : IItemService
         }
     }
 
-    // public async Task<IEnumerable<ItemDto>> GetItemsAsync()
-    // {
-    //     return await HttpClient.GetFromJsonAsync<IEnumerable<ItemDto>>("api/item") 
-    //            ?? Enumerable.Empty<ItemDto>();
-    // }
-    
-    // TEMPORARY PLUG WHILE THE BACKEND IS DOWN
     public async Task<IEnumerable<ItemDto>> GetItemsAsync()
     {
-        try 
-        {
-            return await HttpClient.GetFromJsonAsync<IEnumerable<ItemDto>>("api/item") 
-                   ?? Enumerable.Empty<ItemDto>();
-        }
-        catch (Exception)
-        {
-            return new List<ItemDto>
-            {
-                new ItemDto { Id = 1, Name = "Test Item 1 (Mock)", Description = "Backend is sleeping...", Price = 10 },
-                new ItemDto { Id = 2, Name = "Test Item 2 (Mock)", Description = "Still waiting for database...", Price = 25 },
-            };
-        }
+        return await HttpClient.GetFromJsonAsync<IEnumerable<ItemDto>>("api/item") 
+               ?? Enumerable.Empty<ItemDto>();
     }
 
     public async Task<ItemDto> GetItemByIdAsync(int id)
@@ -102,24 +84,25 @@ public class HttpItemService : IItemService
 
         foreach (var file in fileList)
         {
-            var ext = Path.GetExtension(file.Name).ToLowerInvariant();
-            if (ext != ".png" && ext != ".jpg" && ext != ".jpeg")
+            var contentType = file.ContentType?.ToLowerInvariant();
+            if (contentType != "image/png" && contentType != "image/jpeg" && contentType != "image/jpg")
             {
-                throw new ArgumentException($"File {file.Name} must be in .png or .jpeg filetype.");
+                throw new ArgumentException($"File {file.Name} must be in PNG or JPEG format.");
             }
 
             using var stream = file.OpenReadStream(maxAllowedSize: 10 * 1024 * 1024);
             using var memoryStream = new MemoryStream();
             await stream.CopyToAsync(memoryStream);
+            
             var fileBytes = memoryStream.ToArray();
 
             memoryStream.Position = 0;
-            using var image = await Image.LoadAsync(memoryStream);
+            using var image = Image.Load(memoryStream);
 
             int width = image.Width;
             int height = image.Height;
 
-            if (width < 0 || height < 0 || width > 2048 || height > 2048)
+            if (width <= 0 || height <= 0 || width > 2048 || height > 2048)
             {
                 throw new ArgumentException($"Picture {file.Name} resolution must be up to 2048x2048 pixels. Current: {width}x{height}");
             }

@@ -14,6 +14,8 @@ public class ItemDto
     [StringLength(500, MinimumLength = 20, ErrorMessage = "Description must be between 20 and 500 characters.")]
     public string Description { get; set; }
 
+    [Required(ErrorMessage = "Price is required.")]
+    [Range(1, 1000000, ErrorMessage = "Price must be between 1 and 1,000,000.")]
     public int? Price { get; set; }
 
     public AlbumDto Album { get; set; }
