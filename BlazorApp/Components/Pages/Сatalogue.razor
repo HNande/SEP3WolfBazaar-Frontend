@@ -88,7 +88,6 @@
     private List<ItemSummaryDto> allItems = new();
     private List<ItemSummaryDto> displayedItems = new();
 
-    // Уже загруженные миниатюры: ItemId -> data URL
     private readonly Dictionary<int, string> thumbnailCache = new();
 
     private int pageSize = PageSize;

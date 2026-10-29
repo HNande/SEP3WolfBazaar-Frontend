@@ -1,5 +1,4 @@
-﻿using System.Net.Http.Json;
-using BlazorApp.DTO;
+﻿using BlazorApp.DTO;
 using Microsoft.AspNetCore.Components.Forms;
 using SixLabors.ImageSharp;
 
@@ -120,7 +119,6 @@ public class HttpItemService : IItemService
         return album;
     }
 
-    // Сервер принимает только PNG, JPG или JPEG, а не MIME-строку
     private static string ToServerFileType(string? contentType) =>
         contentType switch
         {
