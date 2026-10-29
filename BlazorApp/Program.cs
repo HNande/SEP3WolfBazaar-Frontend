@@ -8,7 +8,7 @@ builder.Services.AddRazorComponents()
 
 builder.Services.AddHttpClient<IItemService, HttpItemService>(client =>
 {
-    client.BaseAddress = new Uri("http://localhost:8085/");
+    client.BaseAddress = new Uri("http://localhost:8080/");
 });
 
 var app = builder.Build();
