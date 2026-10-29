@@ -45,7 +45,11 @@ public class HttpItemService : IItemService
 
     public async Task<IEnumerable<ItemSummaryDto>> GetItemSummariesAsync()
     {
-        return await _http.GetFromJsonAsync<IEnumerable<ItemSummaryDto>>("api/item")
+        var response = await _http.GetAsync("api/item");
+        if (!response.IsSuccessStatusCode)
+            throw new Exception(await ReadErrorAsync(response));
+
+        return await response.Content.ReadFromJsonAsync<IEnumerable<ItemSummaryDto>>()
                ?? Enumerable.Empty<ItemSummaryDto>();
     }
 
