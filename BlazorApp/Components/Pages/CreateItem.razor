@@ -33,15 +33,23 @@
     </div>
 
     <div class="mb-3">
-        <label>Keyword:</label>
-        <!--<InputSelect class="form-control" @bind-Value="itemDto.Keyword">
-            <option value="">-- Select a keyword from server --</option>
-            @foreach (var keyword in availableKeywords)
-            {
-                <option value="@keyword">@keyword</option>
-            }
-        </InputSelect>
-        <ValidationMessage For="@(() => itemDto.Keyword)" />-->
+        <label>Member email (8 - 50 chars):</label>
+        <InputText type="email" class="form-control" @bind-Value="itemDto.MemberName" />
+        <ValidationMessage For="@(() => itemDto.MemberName)" />
+    </div>
+
+    <div class="mb-3">
+        <label class="d-block">Categories (select at least one):</label>
+        @foreach (var category in availableCategories)
+        {
+            <div class="form-check form-check-inline">
+                <input class="form-check-input" type="checkbox" id="category-@category"
+                       checked="@itemDto.Categories.Contains(category)"
+                       @onchange="e => ToggleCategory(category, (bool)(e.Value ?? false))" />
+                <label class="form-check-label" for="category-@category">@char.ToUpper(category[0])@category[1..]</label>
+            </div>
+        }
+        <ValidationMessage For="@(() => itemDto.Categories)" />
     </div>
 
     <div class="mb-3">
@@ -65,7 +73,7 @@
 @code {
     private ItemDto itemDto = new();
     private List<IBrowserFile> selectedFiles = new();
-    private List<string> availableKeywords = new();
+    private readonly string[] availableCategories = { "clothing", "accessories", "curios" };
     private string? errorMessage;
     private bool isSubmitting;
 
@@ -83,6 +91,14 @@
         {
             errorMessage = $"Could not load keywords from server: {ex.Message}";
         }
+    }
+
+    private void ToggleCategory(string category, bool isSelected)
+    {
+        if (isSelected && !itemDto.Categories.Contains(category))
+            itemDto.Categories.Add(category);
+        else if (!isSelected)
+            itemDto.Categories.Remove(category);
     }
 
     private async Task LoadFiles(InputFileChangeEventArgs e)

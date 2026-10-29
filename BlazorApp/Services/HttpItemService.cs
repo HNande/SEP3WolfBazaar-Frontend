@@ -23,7 +23,7 @@ public class HttpItemService : IItemService
         if (!response.IsSuccessStatusCode)
         {
             string error = await response.Content.ReadAsStringAsync();
-            throw new Exception($"Failed to create item: {error}");
+            throw new Exception($"Failed to create item (HTTP {(int)response.StatusCode}): {error}");
         }
 
         return await response.Content.ReadFromJsonAsync<ItemDto>() ?? itemDto;
@@ -109,13 +109,70 @@ public class HttpItemService : IItemService
 
             album.Photos.Add(new PhotoDto
             {
+                Name = file.Name,
                 Width = width,
                 Height = height,
-                Filetype = file.ContentType ?? "image/jpeg",
+                Filetype = ToServerFileType(contentType),
                 Data = fileBytes
             });
         }
 
         return album;
+    }
+
+    // Сервер принимает только PNG, JPG или JPEG, а не MIME-строку
+    private static string ToServerFileType(string? contentType) =>
+        contentType switch
+        {
+            "image/png" => "PNG",
+            "image/jpeg" or "image/jpg" => "JPG",
+            _ => throw new ArgumentException($"Unsupported content type: {contentType}")
+        };
+    
+    public async Task<IEnumerable<ItemSummaryDto>> GetItemSummariesAsync()
+    {
+        return await HttpClient.GetFromJsonAsync<IEnumerable<ItemSummaryDto>>("api/item/summaries")
+               ?? Enumerable.Empty<ItemSummaryDto>();
+    }
+
+    public async Task<Dictionary<int, string>> GetThumbnailsAsync(IEnumerable<int> ids)
+    {
+        var idList = ids.Distinct().ToList();
+        var result = new Dictionary<int, string>();
+        if (idList.Count == 0)
+            return result;
+
+        var url = $"api/item/thumbnails?ids={string.Join(",", idList)}";
+        var thumbnails = await HttpClient.GetFromJsonAsync<List<ThumbnailDto>>(url)
+                         ?? new List<ThumbnailDto>();
+
+        foreach (var t in thumbnails)
+        {
+            var mime = ToMimeType(t.Filetype);
+            if (mime is null || string.IsNullOrEmpty(t.Data))
+                continue;
+
+            result[t.ItemId] = $"data:{mime};base64,{t.Data}";
+        }
+
+        return result;
+    }
+
+    private static string? ToMimeType(string? filetype)
+    {
+        if (string.IsNullOrWhiteSpace(filetype))
+            return null;
+
+        var value = filetype.Trim().ToLowerInvariant();
+
+        if (value.StartsWith("image/"))
+            return value == "image/jpg" ? "image/jpeg" : value;
+
+        return value.TrimStart('.') switch
+        {
+            "png" => "image/png",
+            "jpg" or "jpeg" => "image/jpeg",
+            _ => null
+        };
     }
 }

@@ -1,4 +1,5 @@
 @page "/"
+@rendermode @(new InteractiveServerRenderMode(prerender: false))
 @inject IItemService ItemService
 @inject NavigationManager Navigation
 
@@ -82,10 +83,15 @@
 </div>
 
 @code {
+    private const int PageSize = 10;
+
     private List<ItemSummaryDto> allItems = new();
     private List<ItemSummaryDto> displayedItems = new();
-    
-    private int pageSize = 10;
+
+    // Уже загруженные миниатюры: ItemId -> data URL
+    private readonly Dictionary<int, string> thumbnailCache = new();
+
+    private int pageSize = PageSize;
     private bool isLoading = true;
     private string? loadErrorMessage;
 
@@ -100,41 +106,26 @@
         {
             isLoading = true;
             loadErrorMessage = null;
-            
-            var result = await ItemService.GetItemsAsync();
-            
-            allItems = result.Select(i => 
-            {
-                string? parsedImageUrl = null;
-                var firstPhoto = i.Album?.Photos?.FirstOrDefault();
-                
-                if (firstPhoto?.Data != null && firstPhoto.Data.Length > 0)
-                {
-                    var base64 = Convert.ToBase64String(firstPhoto.Data);
-                    parsedImageUrl = $"data:{firstPhoto.Filetype};base64,{base64}";
-                }
 
-                return new ItemSummaryDto 
-                {
-                    Id = i.Id,
-                    Name = i.Name ?? "Unnamed Item",
-                    Description = i.Description ?? string.Empty,
-                    Price = (decimal?)i.Price,
-                    ImageUrl = parsedImageUrl
-                };
-            }).ToList();
+            var result = await ItemService.GetItemSummariesAsync();
+            allItems = result.ToList();
 
+            pageSize = PageSize;
             UpdateDisplayedItems();
         }
         catch (Exception ex)
         {
             loadErrorMessage = "Failed to load catalogue from server. Please check your connection.";
             Console.WriteLine($"Error loading items: {ex.Message}");
-        }
-        finally
-        {
             isLoading = false;
+            return;
         }
+
+        isLoading = false;
+
+        StateHasChanged();
+
+        await LoadThumbnailsAsync(displayedItems);
     }
 
     private void UpdateDisplayedItems()
@@ -142,10 +133,59 @@
         displayedItems = allItems.Take(pageSize).ToList();
     }
 
-    private void LoadMore()
+    private async Task LoadMore()
     {
-        pageSize += 10;
+        var previousCount = displayedItems.Count;
+
+        pageSize += PageSize;
         UpdateDisplayedItems();
+
+        var newItems = displayedItems.Skip(previousCount).ToList();
+        StateHasChanged();
+
+        await LoadThumbnailsAsync(newItems);
+    }
+
+    private async Task LoadThumbnailsAsync(IEnumerable<ItemSummaryDto> items)
+    {
+        var batch = items.ToList();
+
+        ApplyCachedThumbnails(batch);
+
+        var idsToFetch = batch
+            .Where(i => !thumbnailCache.ContainsKey(i.Id))
+            .Select(i => i.Id)
+            .ToList();
+
+        if (idsToFetch.Count == 0)
+            return;
+
+        try
+        {
+            var thumbnails = await ItemService.GetThumbnailsAsync(idsToFetch);
+
+            foreach (var (id, dataUrl) in thumbnails)
+            {
+                thumbnailCache[id] = dataUrl;
+            }
+
+            ApplyCachedThumbnails(batch);
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error loading thumbnails: {ex.Message}");
+        }
+    }
+
+    private void ApplyCachedThumbnails(IEnumerable<ItemSummaryDto> items)
+    {
+        foreach (var item in items)
+        {
+            if (thumbnailCache.TryGetValue(item.Id, out var dataUrl))
+            {
+                item.ImageUrl = dataUrl;
+            }
+        }
     }
 
     private async Task ReloadItems()
