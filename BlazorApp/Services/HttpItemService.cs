@@ -19,15 +19,13 @@ public class HttpItemService : IItemService
         _http = httpClient;
     }
 
-    public async Task<ItemDto> CreateItemAsync(ItemDto itemDto, IEnumerable<IBrowserFile> files)
+    public async Task CreateItemAsync(ItemDto itemDto, IEnumerable<IBrowserFile> files)
     {
         itemDto.Album = await BuildAlbumAsync(itemDto.Name, files);
 
         var response = await _http.PostAsJsonAsync("api/item", itemDto);
         if (!response.IsSuccessStatusCode)
             throw new Exception(await ReadErrorAsync(response));
-
-        return await response.Content.ReadFromJsonAsync<ItemDto>() ?? itemDto;
     }
 
     public async Task<ItemDto> GetItemByIdAsync(int id)
