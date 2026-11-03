@@ -67,7 +67,7 @@ main {
     display: flex;
 }
 
-.top-row > div {
+.top-row > div:not(.client-photo-container) {
     background: linear-gradient(135deg, #fef08a 0%, #fde047 100%);
     color: #1e293b;
     padding: 6px 18px;
@@ -83,9 +83,20 @@ main {
 .client-photo-container {
     display: flex;
     align-items: center;
+    background: transparent !important;
+    border: none !important;
+    box-shadow: none !important;
+    padding: 0 !important;
+    cursor: pointer;
+    transition: all 0.3s ease;
 }
 
-.top-row > div:hover {
+.client-photo-container:hover {
+    box-shadow: 0 0 22px rgba(253, 224, 71, 0.7) !important;
+    transform: translateY(-1px);
+}
+
+.top-row > div:not(.client-photo-container):hover {
     box-shadow: 0 0 22px rgba(253, 224, 71, 0.7);
     transform: translateY(-1px);
 }

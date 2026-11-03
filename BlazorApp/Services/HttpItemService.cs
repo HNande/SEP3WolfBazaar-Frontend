@@ -150,4 +150,14 @@ public class HttpItemService : IItemService
             _ => null
         };
     }
+    
+    public async Task DeleteItemAsync(int id)
+    {
+        var response = await _http.DeleteAsync($"api/item/{id}");
+
+        if (response.StatusCode == HttpStatusCode.NotFound)
+            throw new KeyNotFoundException($"Item with ID {id} was not found.");
+        if (!response.IsSuccessStatusCode)
+            throw new Exception(await ReadErrorAsync(response));
+    }
 }

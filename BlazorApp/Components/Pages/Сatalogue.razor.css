@@ -131,6 +131,32 @@
     color: #38bdf8 !important;
 }
 
+.item-actions {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.delete-btn {
+    border: 1px solid rgba(248, 113, 113, 0.5);
+    color: #f87171;
+    background-color: rgba(248, 113, 113, 0.08);
+    border-radius: 20px;
+    padding: 4px 16px;
+    font-weight: 500;
+}
+
+.delete-btn:hover:not(:disabled) {
+    background-color: rgba(248, 113, 113, 0.2);
+    border-color: #f87171;
+    color: #fef2f2;
+}
+
+.delete-confirm-text {
+    color: #fca5a5;
+    font-size: 0.85rem;
+}
+
 .load-more-btn {
     border: 1px solid rgba(56, 189, 248, 0.5);
     color: #38bdf8;

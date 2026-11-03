@@ -42,16 +42,21 @@
         }
         else
         {
+            @if (!string.IsNullOrEmpty(actionErrorMessage))
+            {
+                <div class="alert alert-danger w-100" role="alert">@actionErrorMessage</div>
+            }
+
             <div class="custom-items-grid">
                 @foreach (var item in displayedItems)
                 {
                     <div class="item-card-wrapper" @key="item.Id">
                         <div class="card item-card p-3 shadow-sm h-100">
-                            
+
                             @if (!string.IsNullOrEmpty(item.ImageUrl))
                             {
-                                <img src="@item.ImageUrl" 
-                                     class="card-img-top mb-2 rounded item-image" 
+                                <img src="@item.ImageUrl"
+                                     class="card-img-top mb-2 rounded item-image"
                                      alt="@item.Name" />
                             }
                             else
@@ -60,12 +65,37 @@
                                     <span>No Image Yet</span>
                                 </div>
                             }
-                            
+
                             <h3 class="h5 item-title mt-2">@item.Name</h3>
                             <p class="item-description">@item.Description</p>
                             <p class="mb-0 item-price">
                                 <strong>Price:</strong> $@item.Price.ToString("N0")
                             </p>
+
+                            <div class="item-actions mt-auto pt-3">
+                                @if (confirmDeleteId == item.Id)
+                                {
+                                    <span class="delete-confirm-text">Delete?</span>
+                                    <button class="btn btn-sm btn-danger"
+                                            disabled="@(deletingId == item.Id)"
+                                            @onclick="() => DeleteItemAsync(item.Id)">
+                                        @(deletingId == item.Id ? "Deleting..." : "Yes")
+                                    </button>
+                                    <button class="btn btn-sm btn-outline-secondary"
+                                            disabled="@(deletingId == item.Id)"
+                                            @onclick="CancelDelete">
+                                        Cancel
+                                    </button>
+                                }
+                                else
+                                {
+                                    <button class="btn btn-sm delete-btn"
+                                            disabled="@(deletingId != null)"
+                                            @onclick="() => AskDelete(item.Id)">
+                                        Delete
+                                    </button>
+                                }
+                            </div>
                         </div>
                     </div>
                 }
@@ -93,6 +123,10 @@
     private bool isLoading = true;
     private string? loadErrorMessage;
 
+    private int? confirmDeleteId;
+    private int? deletingId;
+    private string? actionErrorMessage;
+
     protected override async Task OnInitializedAsync()
     {
         await LoadDataAsync();
@@ -104,6 +138,7 @@
         {
             isLoading = true;
             loadErrorMessage = null;
+            actionErrorMessage = null;
 
             var result = await ItemService.GetItemSummariesAsync();
             allItems = result.ToList();
@@ -189,5 +224,53 @@
     private async Task ReloadItems()
     {
         await LoadDataAsync();
+    }
+
+    private void AskDelete(int id)
+    {
+        actionErrorMessage = null;
+        confirmDeleteId = id;
+    }
+
+    private void CancelDelete()
+    {
+        confirmDeleteId = null;
+    }
+
+    private async Task DeleteItemAsync(int id)
+    {
+        deletingId = id;
+        actionErrorMessage = null;
+
+        try
+        {
+            await ItemService.DeleteItemAsync(id);
+            await RemoveFromListAsync(id);
+        }
+        catch (KeyNotFoundException)
+        {
+            await RemoveFromListAsync(id);
+        }
+        catch (Exception ex)
+        {
+            actionErrorMessage = $"Could not delete item: {ex.Message}";
+        }
+        finally
+        {
+            deletingId = null;
+            confirmDeleteId = null;
+        }
+    }
+
+    private async Task RemoveFromListAsync(int id)
+    {
+        allItems.RemoveAll(i => i.Id == id);
+        thumbnailCache.Remove(id);
+
+        var shownBefore = displayedItems.Select(i => i.Id).ToHashSet();
+        UpdateDisplayedItems();
+
+        var newlyShown = displayedItems.Where(i => !shownBefore.Contains(i.Id)).ToList();
+        await LoadThumbnailsAsync(newlyShown);
     }
 }

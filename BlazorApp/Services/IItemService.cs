@@ -9,4 +9,5 @@ public interface IItemService
     Task<ItemDto> GetItemByIdAsync(int id);
     Task<IEnumerable<ItemSummaryDto>> GetItemSummariesAsync();
     Task<Dictionary<int, string>> GetThumbnailsAsync(IEnumerable<int> ids);
+    Task DeleteItemAsync(int id);
 }
